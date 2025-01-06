@@ -1,3 +1,5 @@
+import { Link, useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import {
   Keyboard,
@@ -10,15 +12,14 @@ import {
   Alert,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Platform,
-  KeyboardAvoidingView,
+  Pressable,
 } from "react-native";
 
 export default function HomeScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
-  const [passwordError, setPasswordError] = useState<string>("");
+  const router = useRouter();
 
   const validateEmail = (text: string): void => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,13 +52,32 @@ export default function HomeScreen() {
         const data = await response.json();
         Alert.alert("Success", data.message); // Mostrar mensaje de éxito
         console.log("Token:", data.token); // Mostrar el token en consola
+        const token = data.token;
+        // Guarda el token en SecureStore
+        await SecureStore.setItemAsync("jwtToken", token);
+
+        //LOGIN EXITOSO
+        router.replace("/home")
       } else {
         const errorData = await response.json();
         Alert.alert("Error", errorData.message || "Login failed");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during login:", error);
-      Alert.alert("Error", "There was an issue with your request");
+
+      if (error instanceof TypeError) {
+        // Error relacionado con la red o la conexión
+        Alert.alert(
+          "Network Error",
+          "Failed to connect to the server. Please check your network."
+        );
+      } else if (error.message) {
+        // Si el error tiene un mensaje, lo mostramos
+        Alert.alert("Error", `An unexpected error occurred: ${error.message}`);
+      } else {
+        // Otros errores desconocidos
+        Alert.alert("Error", "An unknown error occurred.");
+      }
     }
   };
 
@@ -82,6 +102,7 @@ export default function HomeScreen() {
             placeholder="Password"
             style={styles.password}
             secureTextEntry // Para ocultar la contraseña
+            onChangeText={setPassword}
           />
 
           <Button
@@ -94,6 +115,13 @@ export default function HomeScreen() {
           <TouchableOpacity>
             <Text>Iniciar Sesión</Text>
           </TouchableOpacity>
+          <Link href="/home" asChild>
+            <Pressable>
+              <Text style={styles.pressableText}>
+                INICIAR SESION CON PRESSABLE
+              </Text>
+            </Pressable>
+          </Link>
 
           <Text style={styles.superTexto}>SUPER TEXTO</Text>
         </View>
@@ -141,5 +169,10 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 40,
     paddingTop: 110,
+  },
+  pressableText: {
+    color: "orange",
+    fontSize: 20,
+    padding: 10,
   },
 });
