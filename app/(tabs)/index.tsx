@@ -13,7 +13,9 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Pressable,
+  Platform,
 } from "react-native";
+import { storeToken } from "../../utils/tokenFunction";
 
 export default function HomeScreen() {
   const [email, setEmail] = useState<string>("");
@@ -30,14 +32,34 @@ export default function HomeScreen() {
     }
     setEmail(text);
   };
+
+  const getApiUrl = () => {
+    // Detecta si está en un dispositivo o emulador de Android/iOS
+    if (Platform.OS === "android") {
+      // Emulador de Android usa 10.0.2.2
+      return "http://10.0.2.2:5214/login"; // Emulador Android
+
+      // Para Android físico, usa la IP local de tu máquina:
+      // return "http://<IP_LOCAL_DE_TU_MAQUINA>:5214/login";
+    } else if (Platform.OS === "ios") {
+      // Emulador iOS usa localhost
+      //return "http://localhost:5214/login"; // Emulador iOS
+
+      // Para iOS físico, usa la IP local de tu máquina:
+      return "http://192.168.1.188:5214/login";
+    }
+
+    return "http://localhost:5214/login"; // En caso de que no sea Android ni iOS, por defecto
+  };
   const handleLogin = async () => {
-    const url = "http://localhost:5214/login"; // Asegúrate de usar la URL correcta
+    const url = getApiUrl();
+
     const payload = {
       email: email,
       password: password,
       rememberMe: true,
     };
-
+    console.log("URL:", url);
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -48,36 +70,23 @@ export default function HomeScreen() {
         body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        Alert.alert("Success", data.message); // Mostrar mensaje de éxito
-        console.log("Token:", data.token); // Mostrar el token en consola
-        const token = data.token;
-        // Guarda el token en SecureStore
-        await SecureStore.setItemAsync("jwtToken", token);
-
-        //LOGIN EXITOSO
-        router.replace("/home")
-      } else {
+      if (!response.ok) {
         const errorData = await response.json();
         Alert.alert("Error", errorData.message || "Login failed");
+        return;
       }
-    } catch (error: any) {
-      console.error("Error during login:", error);
 
-      if (error instanceof TypeError) {
-        // Error relacionado con la red o la conexión
-        Alert.alert(
-          "Network Error",
-          "Failed to connect to the server. Please check your network."
-        );
-      } else if (error.message) {
-        // Si el error tiene un mensaje, lo mostramos
-        Alert.alert("Error", `An unexpected error occurred: ${error.message}`);
-      } else {
-        // Otros errores desconocidos
-        Alert.alert("Error", "An unknown error occurred.");
-      }
+      const data = await response.json();
+      const token = data.token;
+
+      // Guardar el token según el entorno
+      await storeToken(token);
+
+      Alert.alert("Success", data.message);
+      router.replace("/home");
+    } catch (error) {
+      console.error("Error al realizar la solicitud:", error);
+      Alert.alert("Error", "Hubo un problema con la solicitud.");
     }
   };
 
