@@ -1,6 +1,5 @@
 import { Link, useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Keyboard,
   View,
@@ -13,11 +12,12 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Pressable,
-  Platform,
+  Platform
 } from "react-native";
-import { storeToken } from "../../utils/tokenFunction";
+import { getToken, storeToken } from "../../utils/tokenFunction";
 
 export default function HomeScreen() {
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
@@ -89,6 +89,17 @@ export default function HomeScreen() {
       Alert.alert("Error", "Hubo un problema con la solicitud.");
     }
   };
+
+
+    useEffect(() => {
+      const checkToken = async () => {
+        // Verificar si ya hay un token guardado
+        if (await getToken()) {
+          router.replace("/home");
+        }
+      };
+      checkToken();
+    }, []);
 
   return (
     <SafeAreaView style={styles.safearea}>

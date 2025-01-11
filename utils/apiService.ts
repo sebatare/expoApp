@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 
 // Función para obtener la URL de la API basada en la plataforma
-export const getApiUrl = (endpoint: string = "user-details") => {
+export const getApiUrl = (endpoint: string = "") => {
   const baseUrl = Platform.OS === "android"
     ? "http://10.0.2.2:5214"
     : Platform.OS === "ios"
@@ -54,5 +54,29 @@ export const fetchFromApi = async (token: string, endpoint: string) => {
   } catch (error) {
     console.error(`Error al obtener datos de ${endpoint}:`, error);
     throw error; // Re-lanzamos el error para manejarlo en el componente
+  }
+};
+
+
+export const fetchAllSedes = async () =>{
+
+  console.log("fetch all sedes");
+  try {
+    const response = await fetch(getApiUrl("get-all-sedes"), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Verificamos si la respuesta fue exitosa
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error: No se pudo obtener la informacion de todas las sedes.", error);
+    throw error; // Re-lanzamos el error para que se pueda manejar en el componente
   }
 };

@@ -5,16 +5,17 @@ import { Platform } from "react-native";
 export const storeToken = async (token) => {
     if (Platform.OS === "web") {
         // Borrar la cookie existente antes de establecer una nueva
-        console.log("Eliminando cookie existente");
         Cookies.remove("jwtToken");
+        console.log("Cookie jwtToken Deleted");
 
         // Guardar en cookies para navegador
         console.log("Guardando token en cookies");
         Cookies.set("jwtToken", token, { secure: true, sameSite: "strict" });
     } else {
-        console.log("Guardando token en SecureStore");
+        
         // Guardar en SecureStore para dispositivos móviles
         await SecureStore.setItemAsync("jwtToken", token);
+        console.log("Token SecureStore Saved");
     }
 };
 
