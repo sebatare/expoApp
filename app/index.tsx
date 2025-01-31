@@ -12,12 +12,11 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Pressable,
-  Platform
+  Platform,
 } from "react-native";
-import { getToken, storeToken } from "../../utils/tokenFunction";
+import { getToken, storeToken } from "../utils/tokenFunction";
 
-export default function HomeScreen() {
-
+export default function   () {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
@@ -46,7 +45,7 @@ export default function HomeScreen() {
       //return "http://localhost:5214/login"; // Emulador iOS
 
       // Para iOS físico, usa la IP local de tu máquina:
-      return "http://192.168.1.188:5214/login";
+      return "http://192.168.100.6:5214/login";
     }
 
     return "http://localhost:5214/login"; // En caso de que no sea Android ni iOS, por defecto
@@ -90,16 +89,16 @@ export default function HomeScreen() {
     }
   };
 
-
-    useEffect(() => {
-      const checkToken = async () => {
-        // Verificar si ya hay un token guardado
-        if (await getToken()) {
-          router.replace("/home");
-        }
-      };
-      checkToken();
-    }, []);
+  useEffect(() => {
+    const checkToken = async () => {
+      // Verificar si ya hay un token guardado
+      if (await getToken()) {
+        router.replace("/home");
+      }
+    };
+    checkToken();
+    ``;
+  }, []);
 
   return (
     <SafeAreaView style={styles.safearea}>

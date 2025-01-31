@@ -5,7 +5,7 @@ export const getApiUrl = (endpoint: string = "") => {
   const baseUrl = Platform.OS === "android"
     ? "http://10.0.2.2:5214"
     : Platform.OS === "ios"
-    ? "http://192.168.1.188:5214"
+    ? "http://192.168.100.6:5214"
     : "http://localhost:5214"; // Para otros casos como web
 
   return `${baseUrl}/${endpoint}`;
@@ -59,8 +59,6 @@ export const fetchFromApi = async (token: string, endpoint: string) => {
 
 
 export const fetchAllSedes = async () =>{
-
-  console.log("fetch all sedes");
   try {
     const response = await fetch(getApiUrl("get-all-sedes"), {
       method: "GET",
@@ -73,10 +71,69 @@ export const fetchAllSedes = async () =>{
     if (!response.ok) {
       throw new Error(`Error: ${response.status} - ${response.statusText}`);
     }
-
     return await response.json();
   } catch (error) {
     console.error("Error: No se pudo obtener la informacion de todas las sedes.", error);
     throw error; // Re-lanzamos el error para que se pueda manejar en el componente
   }
 };
+
+export const fetchCanchasBySede = async (sedeId: number) =>{
+  try {
+    const response = await fetch(getApiUrl(`get-canchas-by-sede/${sedeId}`), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Verificamos si la respuesta fue exitosa
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error: No se pudo obtener la informacion de todas las sedes.", error);
+    throw error; // Re-lanzamos el error para que se pueda manejar en el componente
+  }
+}
+
+export const fetchGetUserByUsername = async (username: string) => {
+  try {
+    const response = await fetch(getApiUrl(`get-user-by-email/${username}`), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Verificamos si la respuesta fue exitosa
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error: No se pudo obtener la informacion de todas las sedes.", error);
+    throw error; // Re-lanzamos el error para que se pueda manejar en el componente
+  }
+}
+
+export const fetchGetUserByEmail = async (username: string) => {
+  try {
+    const response = await fetch(getApiUrl(`get-user-by-email/${username}`), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Verificamos si la respuesta fue exitosa
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error: No se pudo obtener la informacion de todas las sedes.", error);
+    throw error; // Re-lanzamos el error para que se pueda manejar en el componente
+  }
+}
