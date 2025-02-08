@@ -33,6 +33,12 @@
           "backgroundColor": "#ffffff"
         }
       ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts."
+        }
+      ],
       "expo-secure-store"
     ],
     "experiments": {

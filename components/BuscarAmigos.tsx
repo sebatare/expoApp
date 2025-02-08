@@ -15,6 +15,8 @@ import {
     fetchGetUserByUsername,
     fetchGetUserByEmail,
   } from "@/utils/apiService";
+
+  import Contactos from "./Contactos";
   
   type User = {
     id: string;
@@ -100,6 +102,9 @@ import {
                   <Text style={styles.searchText}>Buscar</Text>
                   <Search color={"white"} size={20} />
                 </TouchableOpacity>
+                <Contactos agregarAlEquipo={(user) =>
+                  setEquipo([...equipo, user])
+                }/>
               </View>
   
               {/* Mostrar resultado */}
@@ -108,7 +113,7 @@ import {
               ) : usersFound.length > 0 ? (
                 <FlatList
                   data={usersFound}
-                  keyExtractor={(item) => item.id}
+                  keyExtractor={(item, index) => index.toString()}
                   renderItem={({ item }) => {
                     const enEquipo = equipo.some((u) => u.id === item.id);
                     return (
