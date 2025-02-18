@@ -5,7 +5,7 @@ export const getApiUrl = (endpoint: string = "") => {
   const baseUrl = Platform.OS === "android"
     ? "http://10.0.2.2:5214"
     : Platform.OS === "ios"
-    ? "http://192.168.100.6:5214"
+    ? "http://192.168.0.163:5214"
     : "http://localhost:5214"; // Para otros casos como web
 
   return `${baseUrl}/${endpoint}`;

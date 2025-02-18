@@ -48,9 +48,12 @@ const Contactos = ({
       firstName: contact.firstName || "Nombre desconocido",
       lastName: contact.lastName || "Apellido desconocido",
     };
-
+    console.log(contact)
     if (!equipo.some((member) => member.id === user.id)) {
+      console.log('member', user)
       setEquipo([...equipo, user]); // Se actualiza el equipo en el padre
+
+      console.log("Equipo actualizado:", equipo);
     }
   };
 

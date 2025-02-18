@@ -102,9 +102,7 @@ import {
                   <Text style={styles.searchText}>Buscar</Text>
                   <Search color={"white"} size={20} />
                 </TouchableOpacity>
-                <Contactos agregarAlEquipo={(user) =>
-                  setEquipo([...equipo, user])
-                }/>
+                <Contactos equipo={equipo} setEquipo={setEquipo} />
               </View>
   
               {/* Mostrar resultado */}
