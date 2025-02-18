@@ -1,158 +1,138 @@
+import React, { useState } from "react";
 import {
-    Dimensions,
-    FlatList,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-    ActivityIndicator,
-  } from "react-native";
-  import React, { useState } from "react";
-  import { Search, UserPlus, CheckCircle } from "lucide-react-native";
-  import {
-    fetchGetUserByUsername,
-    fetchGetUserByEmail,
-  } from "@/utils/apiService";
+  Dimensions,
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+} from "react-native";
+import { Search, UserPlus, CheckCircle } from "lucide-react-native";
+import { fetchGetUserByUsername, fetchGetUserByEmail } from "@/utils/apiService";
+import Contactos from "./Contactos";
+import { useEquipo } from "@/context/EquipoContext"; // Importamos el contexto
 
-  import Contactos from "./Contactos";
-  
-  type User = {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  
-  const BuscarAmigos = ({
-    agregarAlEquipo,
-  }: {
-    agregarAlEquipo: (user: User) => void;
-  }) => {
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [usuario, setUsuario] = useState<string>("");
-    const [usersFound, setUsersFound] = useState<User[]>([]);
-    const [equipo, setEquipo] = useState<User[]>([]); // Estado para usuarios en el equipo
-    const [loading, setLoading] = useState(false);
-  
-    const fetchData = async () => {
-      if (!usuario.trim()) return; // Evita llamadas vacías
-      setLoading(true);
-      try {
-        let response: User | User[] = [];
-  
-        if (usuario.includes("@")) {
-          response = await fetchGetUserByEmail(usuario); // Si es un correo
-        } else {
-          response = await fetchGetUserByUsername(usuario); // Si es un username
-        }
-  
-        console.log("Usuarios encontrados:", response);
-  
-        // Asegurar que siempre sea un array
-        setUsersFound(Array.isArray(response) ? response : [response]);
-      } catch (error) {
-        console.error("Error al cargar los usuarios:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    // Función para agregar o quitar usuario del equipo
-    const toggleEquipo = (user: User) => {
-      if (equipo.some((u) => u.id === user.id)) {
-        // Si ya está en el equipo, lo eliminamos
-        setEquipo(equipo.filter((u) => u.id !== user.id));
+type User = {
+  id: string;
+  firstName: string;
+  lastName: string;
+};
+
+const BuscarAmigos = () => {
+  const { equipo, dispatch } = useEquipo(); // Obtenemos equipo y dispatch del contexto
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [usuario, setUsuario] = useState<string>("");
+  const [usersFound, setUsersFound] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchData = async () => {
+    if (!usuario.trim()) return;
+    setLoading(true);
+    try {
+      let response: User | User[] = [];
+
+      if (usuario.includes("@")) {
+        response = await fetchGetUserByEmail(usuario);
       } else {
-        // Si no está en el equipo, lo agregamos
-        setEquipo([...equipo, user]);
-        agregarAlEquipo(user);
+        response = await fetchGetUserByUsername(usuario);
       }
-    };
-  
-    return (
-      <>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setIsModalVisible(true)}
-        >
-          <UserPlus size={24} color={"#fff"} />
-        </TouchableOpacity>
-  
-        {/* Modal buscar amigos */}
-        <Modal
-          visible={isModalVisible}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setIsModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.title}>Buscar amigos</Text>
-  
-              {/* BUSCADOR */}
-              <View style={styles.searchContainer}>
-                <TextInput
-                  placeholder="Username o Correo"
-                  value={usuario}
-                  onChangeText={setUsuario}
-                  style={styles.input}
-                />
-                <TouchableOpacity style={styles.searchButton} onPress={fetchData}>
-                  <Text style={styles.searchText}>Buscar</Text>
-                  <Search color={"white"} size={20} />
-                </TouchableOpacity>
-                <Contactos equipo={equipo} setEquipo={setEquipo} />
-              </View>
-  
-              {/* Mostrar resultado */}
-              {loading ? (
-                <ActivityIndicator size="large" color="#4CAF50" />
-              ) : usersFound.length > 0 ? (
-                <FlatList
-                  data={usersFound}
-                  keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }) => {
-                    const enEquipo = equipo.some((u) => u.id === item.id);
-                    return (
-                      <View style={styles.userContainer}>
-                        <Text style={styles.userText}>
-                          {item.firstName} {item.lastName}
-                        </Text>
-                        <TouchableOpacity
-                          onPress={() => toggleEquipo(item)}
-                          disabled={enEquipo} // Deshabilita si ya está en el equipo
-                        >
-                          {enEquipo ? (
-                            <CheckCircle color={"green"} size={20} />
-                          ) : (
-                            <UserPlus color={"black"} size={20} />
-                          )}
-                        </TouchableOpacity>
-                      </View>
-                    );
-                  }}
-                />
-              ) : (
-                <Text style={styles.noResults}>No se encontraron usuarios</Text>
-              )}
-  
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => {
-                  setIsModalVisible(false);
-                }}
-              >
-                <Text style={styles.closeButtonText}>Cerrar</Text>
+
+      setUsersFound(Array.isArray(response) ? response : [response]);
+    } catch (error) {
+      console.error("Error al cargar los usuarios:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleEquipo = (user: User) => {
+    if (equipo.some((u) => u.id === user.id)) {
+      dispatch({ type: "ELIMINAR_USUARIO", payload: user.id });
+    } else {
+      dispatch({ type: "AGREGAR_USUARIO", payload: user });
+    }
+  };
+
+  return (
+    <>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setIsModalVisible(true)}
+      >
+        <UserPlus size={24} color={"#fff"} />
+      </TouchableOpacity>
+
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.title}>Buscar amigos</Text>
+
+            <View style={styles.searchContainer}>
+              <TextInput
+                placeholder="Username o Correo"
+                value={usuario}
+                onChangeText={setUsuario}
+                style={styles.input}
+              />
+              <TouchableOpacity style={styles.searchButton} onPress={fetchData}>
+                <Text style={styles.searchText}>Buscar</Text>
+                <Search color={"white"} size={20} />
               </TouchableOpacity>
             </View>
+
+            <Contactos />
+
+            {loading ? (
+              <ActivityIndicator size="large" color="#4CAF50" />
+            ) : usersFound.length > 0 ? (
+              <FlatList
+                data={usersFound}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => {
+                  const enEquipo = equipo.some((u) => u.id === item.id);
+                  return (
+                    <View style={styles.userContainer}>
+                      <Text style={styles.userText}>
+                        {item.firstName} {item.lastName}
+                      </Text>
+                      <TouchableOpacity onPress={() => toggleEquipo(item)}>
+                        {enEquipo ? (
+                          <CheckCircle color={"green"} size={20} />
+                        ) : (
+                          <UserPlus color={"black"} size={20} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  );
+                }}
+              />
+            ) : (
+              <Text style={styles.noResults}>No se encontraron usuarios</Text>
+            )}
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setIsModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
           </View>
-        </Modal>
-      </>
-    );
-  };
-  
-  export default BuscarAmigos;
+        </View>
+      </Modal>
+    </>
+  );
+};
+
+export default BuscarAmigos;
+
   
   const { width } = Dimensions.get("window");
   

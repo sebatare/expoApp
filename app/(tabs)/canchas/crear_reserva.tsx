@@ -16,11 +16,14 @@ import sedesImagesMapping from "@/utils/sedesImagesMapping";
 import CanchaSelector from "@/components/CanchaSelector";
 import { XCircle, Expand } from "lucide-react-native";
 import BuscarAmigos from "@/components/BuscarAmigos";
+import { useEquipo } from "@/context/EquipoContext"; // Importamos el contexto
 
 const CrearReserva = () => {
   const { data } = useLocalSearchParams();
   const [sede, setSede] = useState<any | null>(null);
-  const [equipo, setEquipo] = useState<string[]>([]);
+  // Se elimina el estado local del equipo y se usa el contexto
+  const { equipo, dispatch } = useEquipo();
+
   const [expandido, setExpandido] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
   const blockedHours = ["10:00", "12:00", "15:00"];
@@ -55,13 +58,10 @@ const CrearReserva = () => {
   }
 
   const imageSource = sedesImagesMapping[sede.imageUrl];
-  const agregarJugador = () => {
-    const nuevoJugador = `Jugador ${equipo.length + 1}`;
-    setEquipo([...equipo, nuevoJugador]);
-  };
 
-  const eliminarJugador = (index: number) => {
-    setEquipo(equipo.filter((_, i) => i !== index));
+  // Función para eliminar un jugador del equipo usando el dispatch del contexto
+  const eliminarJugador = (userId: string) => {
+    dispatch({ type: "ELIMINAR_USUARIO", payload: userId });
   };
 
   return (
@@ -94,21 +94,20 @@ const CrearReserva = () => {
                 <Expand size={24} color={"#fff"} />
               </TouchableOpacity>
               <Text style={styles.titleEquipo}>Equipo</Text>
-              <BuscarAmigos
-                agregarAlEquipo={(user) =>
-                  setEquipo([...equipo, `${user.firstName} ${user.lastName}`])
-                }
-              />
+              {/* Botón para buscar e invitar amigos, que a su vez usa el EquipoContext */}
+              <BuscarAmigos />
             </View>
 
             <FlatList
               data={equipo}
-              keyExtractor={(item, index) => index.toString()}
+              keyExtractor={(item) => item.id}
               style={{ maxHeight: expandido ? 500 : 300 }}
-              renderItem={({ item, index }) => (
+              renderItem={({ item }) => (
                 <Animated.View style={styles.jugadorContainer}>
-                  <Text style={styles.jugadorText}>{item}</Text>
-                  <TouchableOpacity onPress={() => eliminarJugador(index)}>
+                  <Text style={styles.jugadorText}>
+                    {item.firstName} {item.lastName}
+                  </Text>
+                  <TouchableOpacity onPress={() => eliminarJugador(item.id)}>
                     <XCircle size={20} color={"#ff4d4d"} />
                   </TouchableOpacity>
                 </Animated.View>

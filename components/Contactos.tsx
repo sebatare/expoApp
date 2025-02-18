@@ -10,20 +10,10 @@ import {
 import React, { useEffect, useState } from "react";
 import { BookUser } from "lucide-react-native";
 import * as Contacts from "expo-contacts";
+import { useEquipo } from "@/context/EquipoContext"; // Asegúrate de ajustar la ruta
 
-type User = {
-  id: string;
-  firstName: string;
-  lastName: string;
-};
-
-const Contactos = ({
-  equipo,
-  setEquipo,
-}: {
-  equipo: User[];
-  setEquipo: React.Dispatch<React.SetStateAction<User[]>>;
-}) => {
+const Contactos = () => {
+  const { equipo, dispatch } = useEquipo(); // Obtenemos el equipo y la función dispatch del contexto
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [contacts, setContacts] = useState<Contacts.Contact[]>([]);
 
@@ -32,9 +22,12 @@ const Contactos = ({
       const { status } = await Contacts.requestPermissionsAsync();
       if (status === "granted") {
         const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.FirstName, Contacts.Fields.LastName],
+          fields: [
+            Contacts.Fields.FirstName,
+            Contacts.Fields.LastName,
+            Contacts.Fields.Emails, // Se agrega para poder obtener el correo, si lo hay
+          ],
         });
-
         if (data.length > 0) {
           setContacts(data);
         }
@@ -42,18 +35,15 @@ const Contactos = ({
     })();
   }, []);
 
-  const bottonAgregar = (contact: Contacts.Contact) => {
-    const user: User = {
+  const agregarContacto = (contact: Contacts.Contact) => {
+    const user = {
       id: contact.id || "unknown-id",
       firstName: contact.firstName || "Nombre desconocido",
       lastName: contact.lastName || "Apellido desconocido",
     };
-    console.log(contact)
-    if (!equipo.some((member) => member.id === user.id)) {
-      console.log('member', user)
-      setEquipo([...equipo, user]); // Se actualiza el equipo en el padre
 
-      console.log("Equipo actualizado:", equipo);
+    if (!equipo.some((member) => member.id === user.id)) {
+      dispatch({ type: "AGREGAR_USUARIO", payload: user });
     }
   };
 
@@ -76,7 +66,7 @@ const Contactos = ({
               data={contacts}
               keyExtractor={(item) => String(item.id)}
               renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => bottonAgregar(item)}>
+                <TouchableOpacity onPress={() => agregarContacto(item)}>
                   <View style={styles.contactItem}>
                     <Text style={styles.contactName}>
                       {item.firstName} {item.lastName}
@@ -102,6 +92,7 @@ const Contactos = ({
 };
 
 export default Contactos;
+
 const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
