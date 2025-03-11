@@ -5,7 +5,7 @@ export default function CanchasLayout() {
     <Stack>
       <Stack.Screen
         name="index"
-        options={{ title: "Informacion de cancaas", headerShown: true }}
+        options={{ title: "Canchas cerca de :", headerShown: true }}
       />
       <Stack.Screen
         name="crear_reserva"

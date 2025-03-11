@@ -32,7 +32,7 @@ const FechaSelectorModal: React.FC<FechaSelectorProps> = ({unavailableDates}) =>
     paddingHorizontal: selectedDate? 0: 20,
     paddingLeft: selectedDate? 20: 20,
   }
-  console.log(unavailableDates);
+  
 
   // Estilizar las fechas no disponibles
   const markedDates = unavailableDates.reduce(
@@ -42,7 +42,7 @@ const FechaSelectorModal: React.FC<FechaSelectorProps> = ({unavailableDates}) =>
     }),
     {}
   );
-  console.log(markedDates)
+  
 
   return (
     <>
