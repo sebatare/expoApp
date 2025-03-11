@@ -11,7 +11,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Search, UserPlus, CheckCircle } from "lucide-react-native";
-import { fetchGetUserByUsername, fetchGetUserByEmail } from "@/utils/apiService";
+import {
+  fetchGetUserByUsername,
+  fetchGetUserByEmail,
+} from "@/utils/apiService";
 import Contactos from "./Contactos";
 import { useEquipo } from "@/context/EquipoContext"; // Importamos el contexto
 
@@ -19,6 +22,7 @@ type User = {
   id: string;
   firstName: string;
   lastName: string;
+  confirmed: boolean;
 };
 
 const BuscarAmigos = () => {
@@ -41,6 +45,7 @@ const BuscarAmigos = () => {
       }
 
       setUsersFound(Array.isArray(response) ? response : [response]);
+      console.log("Usuarios encontrados:", response);
     } catch (error) {
       console.error("Error al cargar los usuarios:", error);
     } finally {
@@ -86,9 +91,8 @@ const BuscarAmigos = () => {
                 <Text style={styles.searchText}>Buscar</Text>
                 <Search color={"white"} size={20} />
               </TouchableOpacity>
+              <Contactos />
             </View>
-
-            <Contactos />
 
             {loading ? (
               <ActivityIndicator size="large" color="#4CAF50" />
@@ -133,90 +137,88 @@ const BuscarAmigos = () => {
 
 export default BuscarAmigos;
 
-  
-  const { width } = Dimensions.get("window");
-  
-  const styles = StyleSheet.create({
-    addButton: {
-      backgroundColor: "#388E3C",
-      padding: 8,
-      borderRadius: 50,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    closeButtonText: {
-      color: "#FFFFFF",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    closeButton: {
-      backgroundColor: "rgb(233, 31, 64)",
-      marginTop: 15,
-      paddingVertical: 12,
-      borderRadius: 10,
-      alignItems: "center",
-    },
-    modalContent: {
-      width: width * 0.9,
-      backgroundColor: "#FFFFFF",
-      borderRadius: 15,
-      padding: 20,
-      shadowColor: "#000",
-      shadowOpacity: 0.2,
-      shadowRadius: 10,
-      elevation: 5,
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.6)",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: "bold",
-      marginBottom: 15,
-      textAlign: "center",
-    },
-    searchContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginBottom: 10,
-    },
-    input: {
-      flex: 1,
-      borderWidth: 1,
-      borderColor: "#ddd",
-      padding: 8,
-      borderRadius: 5,
-      marginRight: 10,
-    },
-    searchButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "#4CAF50",
-      padding: 10,
-      borderRadius: 5,
-    },
-    searchText: {
-      color: "white",
-      marginRight: 5,
-    },
-    userContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: 10,
-      borderBottomWidth: 1,
-      borderBottomColor: "#ddd",
-    },
-    userText: {
-      fontSize: 16,
-    },
-    noResults: {
-      textAlign: "center",
-      marginTop: 10,
-      color: "gray",
-    },
-  });
-  
+const { width } = Dimensions.get("window");
+
+const styles = StyleSheet.create({
+  addButton: {
+    backgroundColor: "#388E3C",
+    padding: 8,
+    borderRadius: 50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  closeButton: {
+    backgroundColor: "rgb(233, 31, 64)",
+    marginTop: 15,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalContent: {
+    width: width * 0.9,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    padding: 8,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  searchButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#4CAF50",
+    padding: 10,
+    borderRadius: 5,
+  },
+  searchText: {
+    color: "white",
+    marginRight: 5,
+  },
+  userContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  userText: {
+    fontSize: 16,
+  },
+  noResults: {
+    textAlign: "center",
+    marginTop: 10,
+    color: "gray",
+  },
+});

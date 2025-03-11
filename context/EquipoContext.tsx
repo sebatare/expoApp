@@ -4,10 +4,14 @@ type User = {
   id: string;
   firstName: string;
   lastName: string;
+  confirmed: boolean;
 };
 
 type EquipoState = {
   equipo: User[];
+  fecha_partido?: string;
+  hora_partido?: string;
+  lugar_partido?: string;
 };
 
 type EquipoAction =

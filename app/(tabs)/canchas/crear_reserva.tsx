@@ -8,24 +8,28 @@ import {
   FlatList,
   Animated,
   Easing,
+  SafeAreaView,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import HoraSelectorModal from "@/components/HoraSelector";
 import FechaSelectorModal from "@/components/FechaSelector";
 import sedesImagesMapping from "@/utils/sedesImagesMapping";
 import CanchaSelector from "@/components/CanchaSelector";
-import { XCircle, Expand } from "lucide-react-native";
+import { XCircle } from "lucide-react-native";
 import BuscarAmigos from "@/components/BuscarAmigos";
-import { useEquipo } from "@/context/EquipoContext"; // Importamos el contexto
+import { useEquipo } from "@/context/EquipoContext";
 
 const CrearReserva = () => {
   const { data } = useLocalSearchParams();
   const [sede, setSede] = useState<any | null>(null);
-  // Se elimina el estado local del equipo y se usa el contexto
+
+  // Equipo global (lista de usuarios) y dispatch para eliminar
   const { equipo, dispatch } = useEquipo();
 
-  const [expandido, setExpandido] = useState(false);
+  // Animación de opacidad
   const fadeAnim = useState(new Animated.Value(0))[0];
+
+  // Horas y fechas bloqueadas (ejemplo)
   const blockedHours = ["10:00", "12:00", "15:00"];
   const unavailableDates = ["2025-01-28", "2025-01-29", "2025-02-03"];
 
@@ -38,6 +42,7 @@ const CrearReserva = () => {
     }).start();
   }, []);
 
+  // Parsear los datos de la cancha
   useEffect(() => {
     if (data) {
       try {
@@ -49,169 +54,185 @@ const CrearReserva = () => {
     }
   }, [data]);
 
+  // Mientras no haya sede, mostramos un loader simple
   if (!sede) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loadingContainer}>
         <Text>Cargando información de la cancha...</Text>
       </View>
     );
   }
 
+  // Imagen de fondo según la sede
   const imageSource = sedesImagesMapping[sede.imageUrl];
 
-  // Función para eliminar un jugador del equipo usando el dispatch del contexto
+  // Eliminar jugador del equipo
   const eliminarJugador = (userId: string) => {
     dispatch({ type: "ELIMINAR_USUARIO", payload: userId });
   };
 
-  return (
-    <View style={styles.container}>
-      <ImageBackground
-        source={imageSource}
-        style={styles.imageBackground}
-        blurRadius={5}
-      >
-        <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-          <Text style={styles.title}>{sede.nombre}</Text>
-          <Text style={styles.description}>{sede.descripcion}</Text>
-          <View style={styles.modalcontainer}>
-            <FechaSelectorModal unavailableDates={unavailableDates} />
-            <HoraSelectorModal blockedHours={blockedHours} />
-          </View>
-          <CanchaSelector reserva={undefined} sede={sede.id} />
+  // Cabecera de la lista (título, descripción, botones de fecha/hora, etc.)
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      {/* Título y descripción */}
+      <Text style={styles.title}>{sede.nombre}</Text>
+      <Text style={styles.description}>{sede.descripcion}</Text>
 
-          <View
-            style={[
-              styles.equipocontainer,
-              expandido ? styles.equipocontainerExpanded : {},
-            ]}
-          >
-            <View style={styles.equipoHeader}>
-              <TouchableOpacity
-                onPress={() => setExpandido(!expandido)}
-                style={styles.expandButton}
-              >
-                <Expand size={24} color={"#fff"} />
-              </TouchableOpacity>
-              <Text style={styles.titleEquipo}>Equipo</Text>
-              {/* Botón para buscar e invitar amigos, que a su vez usa el EquipoContext */}
-              <BuscarAmigos />
-            </View>
+      {/* Selectores de fecha/hora */}
+      <View style={styles.modalcontainer}>
+        <FechaSelectorModal unavailableDates={unavailableDates} />
+        <HoraSelectorModal blockedHours={blockedHours} />
+      </View>
 
-            <FlatList
-              data={equipo}
-              keyExtractor={(item) => item.id}
-              style={{ maxHeight: expandido ? 500 : 300 }}
-              renderItem={({ item }) => (
-                <Animated.View style={styles.jugadorContainer}>
-                  <Text style={styles.jugadorText}>
-                    {item.firstName} {item.lastName}
-                  </Text>
-                  <TouchableOpacity onPress={() => eliminarJugador(item.id)}>
-                    <XCircle size={20} color={"#ff4d4d"} />
-                  </TouchableOpacity>
-                </Animated.View>
-              )}
-            />
-          </View>
-        </Animated.View>
-      </ImageBackground>
+      {/* Selector de canchas */}
+      <CanchaSelector reserva={undefined} sede={sede.id} />
+
+      {/* Contenedor "Equipo" + botón de buscar amigos */}
+      <View style={styles.equipocontainer}>
+        <View style={styles.equipoHeader}>
+          <Text style={styles.titleEquipo}>Equipo</Text>
+          <BuscarAmigos />
+        </View>
+      </View>
     </View>
+  );
+
+  // Cada elemento (jugador) en la lista
+  const renderItem = ({ item }: { item: any }) => (
+    <View style={styles.jugadorContainer}>
+      <Text style={styles.jugadorText}>
+        {item.firstName} {item.lastName}
+      </Text>
+      <TouchableOpacity onPress={() => eliminarJugador(item.id)}>
+        <XCircle size={20} color={"#ff4d4d"} />
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Pie de la lista (botón "Solicitar")
+  const renderFooter = () => (
+    <View style={styles.footerContainer}>
+      <TouchableOpacity style={styles.solicitarButton}>
+        <Text style={styles.solicitarButtonText}>Solicitar</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    // Imagen de fondo que cubre toda la pantalla
+    <ImageBackground source={imageSource} style={styles.imageBackground} blurRadius={5}>
+      {/* Capa semi-transparente para oscurecer la imagen */}
+      <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
+        {/* SafeAreaView para no chocar con la barra superior */}
+        <SafeAreaView style={{ flex: 1 }}>
+          <FlatList
+            data={equipo}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            ListHeaderComponent={renderHeader}
+            ListFooterComponent={renderFooter}
+            contentContainerStyle={styles.listContent}
+          />
+        </SafeAreaView>
+      </Animated.View>
+    </ImageBackground>
   );
 };
 
 export default CrearReserva;
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageBackground: {
+    flex: 1, // ocupa toda la pantalla
+  },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.17)",
+    backgroundColor: "rgba(0, 0, 0, 0.3)", // oscurece un poco el fondo
     padding: 20,
-    borderRadius: 10,
   },
-  titleEquipo: {
-    fontSize: 20,
-    color: "rgb(22, 22, 22)",
-    fontWeight: "500",
+  listContent: {
+    paddingBottom: 20,
+  },
+  headerContainer: {
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    marginTop: 10,
+  },
+  description: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+    marginVertical: 5,
+  },
+  modalcontainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: 10,
+  },
+  equipocontainer: {
+    marginTop: 20,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 20,
+    marginHorizontal: 10,
+    overflow: "hidden",
   },
   equipoHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
     backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
-  equipocontainer: {
-    marginHorizontal: 30,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 20,
-    paddingBottom: 15,
-    marginTop: 20,
-    overflow: "hidden",
-  },
-  equipocontainerExpanded: {
-    maxHeight: 600,
-  },
-  expandButton: {
-    backgroundColor: "#388E3C",
-    padding: 8,
-    borderRadius: 50,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addButton: {
-    backgroundColor: "#388E3C",
-    padding: 8,
-    borderRadius: 50,
-    alignItems: "center",
-    justifyContent: "center",
+  titleEquipo: {
+    fontSize: 20,
+    color: "#161616",
+    fontWeight: "500",
   },
   jugadorContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
     paddingHorizontal: 15,
     paddingVertical: 10,
+    marginHorizontal: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
-    backgroundColor: "rgba(255,255,255,0.9)",
-    borderRadius: 10,
-    marginVertical: 5,
+    borderRadius: 8,
+    marginTop: 5,
   },
   jugadorText: {
     fontSize: 16,
     fontWeight: "500",
     color: "#333",
   },
-  description: {
-    color: "rgb(255, 255, 255)",
-    fontSize: 20,
-    textAlign: "center",
-    fontWeight: "500",
+  footerContainer: {
+    marginTop: 20,
+    alignItems: "center",
   },
-  title: {
-    fontSize: 54,
-    fontWeight: "bold",
-    marginVertical: 30,
+  solicitarButton: {
+    backgroundColor: "#4CAF50",
+    padding: 12,
+    borderRadius: 8,
+    width: "90%",
+    alignItems: "center",
+  },
+  solicitarButtonText: {
     color: "#fff",
-    textAlign: "center",
-  },
-  modalcontainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 20,
-    marginVertical: 20,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#F5FCFF",
-  },
-  imageBackground: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
+    fontSize: 18,
+    fontWeight: "600",
   },
 });

@@ -38,7 +38,7 @@ const CanchaSelector = ({ reserva, sede }: Props) => {
       try {
         const response = await fetchCanchasBySede(sede);
         setCanchas(response);
-        console.log(canchas);
+    
       } catch (error) {
         console.error("Error al cargar las canchas:", error);
       }

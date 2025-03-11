@@ -40,6 +40,7 @@ const Contactos = () => {
       id: contact.id || "unknown-id",
       firstName: contact.firstName || "Nombre desconocido",
       lastName: contact.lastName || "Apellido desconocido",
+      confirmed: false,
     };
 
     if (!equipo.some((member) => member.id === user.id)) {

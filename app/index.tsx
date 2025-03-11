@@ -45,7 +45,7 @@ export default function () {
       //return "http://localhost:5214/login"; // Emulador iOS
 
       // Para iOS físico, usa la IP local de tu máquina:
-      return "http://192.168.0.163:5214/login";
+      return "http://172.20.10.2:5214/login";
     }
 
     return "http://localhost:5214/login"; // En caso de que no sea Android ni iOS, por defecto
@@ -58,7 +58,6 @@ export default function () {
       password: password,
       rememberMe: true,
     };
-    console.log("URL:", url);
     try {
       const response = await fetch(url, {
         method: "POST",
