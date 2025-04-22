@@ -8,26 +8,19 @@ import {
   View,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { fetchCanchasBySede } from "@/utils/apiService";
-// Definimos los tipos
-type Reserva = {
-  id: number;
-  fecha: string;
-  hora: string;
-  canchaId: number;
-};
-
+import { fetchCanchasBySede } from "@/services/apiService";
+import { useReserva } from "@/context/reserva/ReservaContext";
 type Cancha = {
   nombre: string;
   id: number;
 };
 
 type Props = {
-  reserva?: Reserva;
   sede: number;
 };
 
-const CanchaSelector = ({ reserva, sede }: Props) => {
+const CanchaSelector = ({ sede }: Props) => {
+  const { dispatch } = useReserva(); // Obtenemos el estado de reserva del contexto
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [canchas, setCanchas] = useState<Cancha[]>([]);
   const [selectedCancha, setSelectedCancha] = useState<Cancha | null>(null);
@@ -49,6 +42,8 @@ const CanchaSelector = ({ reserva, sede }: Props) => {
   // Función para manejar la selección de una cancha
   const handleSelectCancha = (cancha: Cancha) => {
     setSelectedCancha(cancha);
+    dispatch({ type: "SET_CANCHA_ID", payload: cancha.id }); // Guardar la cancha seleccionada en el contexto
+
     setIsModalVisible(false); // Cerrar el modal
   };
 

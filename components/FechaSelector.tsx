@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { CircleX } from 'lucide-react-native';
+import { useReserva } from "@/context/reserva/ReservaContext"; // asegúrate que la ruta sea correcta
 
 interface FechaSelectorProps {
   unavailableDates: string[]; // Lista de fechas no disponibles en formato YYYY-MM-DD
@@ -16,11 +17,14 @@ interface FechaSelectorProps {
 }
 
 const FechaSelectorModal: React.FC<FechaSelectorProps> = ({unavailableDates}) => {
+
+  const { dispatch } = useReserva(); // Obtenemos el estado de reserva del contexto
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // Estado para la fecha seleccionada
 
   const handleSelect = (date: string) => {
     setSelectedDate(date); // Actualiza la fecha seleccionada
+    dispatch({ type: 'SET_FECHA', payload: date });
     setIsModalVisible(false); // Cierra el modal
   };
   const iconButtonStyle = {

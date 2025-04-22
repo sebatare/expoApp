@@ -12,11 +12,15 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Pressable,
-  Platform,
 } from "react-native";
 import { getToken, storeToken } from "../utils/tokenFunction";
+import { fetchLogin } from "@/services/apiService";
+import { jwtDecode } from "jwt-decode";
+import { useUser } from "@/context/user/UserContext";
+import { JwtPayload } from "@/types/JwtPayload";
 
 export default function () {
+  const { dispatch } = useUser();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
@@ -32,61 +36,31 @@ export default function () {
     setEmail(text);
   };
 
-  const getApiUrl = () => {
-    // Detecta si está en un dispositivo o emulador de Android/iOS
-    if (Platform.OS === "android") {
-      // Emulador de Android usa 10.0.2.2
-      return "http://10.0.2.2:5214/login"; // Emulador Android
-
-      // Para Android físico, usa la IP local de tu máquina:
-      // return "http://<IP_LOCAL_DE_TU_MAQUINA>:5214/login";
-    } else if (Platform.OS === "ios") {
-      // Emulador iOS usa localhost
-      //return "http://localhost:5214/login"; // Emulador iOS
-
-      // Para iOS físico, usa la IP local de tu máquina:
-      return "http://172.20.10.2:5214/login";
-    }
-
-    return "http://localhost:5214/login"; // En caso de que no sea Android ni iOS, por defecto
-  };
   const handleLogin = async () => {
-    const url = getApiUrl();
-
-    const payload = {
-      email: email,
-      password: password,
-      rememberMe: true,
-    };
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Accept: "*/*",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        Alert.alert("Error", errorData.message || "Login failed");
-        return;
-      }
-
-      const data = await response.json();
+      const data = await fetchLogin(email, password);
       const token = data.token;
 
-      // Guardar el token según el entorno
-      await storeToken(token);
+      // 1. Decodificar el JWT
+      const decoded = jwtDecode<JwtPayload>(token);
 
-      Alert.alert("Success", data.message);
+      // 2. Guardar token en almacenamiento seguro
+      await storeToken(token);
+      console.log("Token guardado:", token);
+
+      console.log("Decoded JWT:", decoded);
+      dispatch({ type: "SET_ID", payload: decoded.nameid });
+      dispatch({ type: "SET_EMAIL", payload: decoded.email });
+      // 4. Redireccionar al home
+      Alert.alert("Éxito", data.message || "Inicio de sesión exitoso");
       router.replace("/home");
-    } catch (error) {
-      console.error("Error al realizar la solicitud:", error);
-      Alert.alert("Error", "Hubo un problema con la solicitud.");
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Hubo un problema con el inicio de sesión");
     }
   };
+
+
+
 
   useEffect(() => {
     const checkToken = async () => {

@@ -13,23 +13,40 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { User, Goal, Atom, LogOut } from "lucide-react-native";
 import NextMatchTemporizater from "@/components/NextMatchTemporizater";
+import { useUser } from "@/context/user/UserContext";
+import { useEquipo } from "@/context/EquipoContext";
+import { useReserva } from "@/context/reserva/ReservaContext";
+import { JwtPayload } from "@/types/JwtPayload";
+import { jwtDecode } from "jwt-decode";
 
 const Home = () => {
+  const {user,  dispatch: dispatchUser } = useUser();
+  const { dispatch: dispatchEquipo } = useEquipo();
+  const { dispatch: dispatchReserva } = useReserva();
+
   const router = useRouter();
   const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
   const insets = useSafeAreaInsets(); // Usamos los márgenes seguros
-  //OBTENER TOKEN
-  const getTokenJwt = useCallback(async () => {
-    try {
-      //OBTENER TOKEN JWT
-      const tokenFromStore = await getToken();
-      if (!tokenFromStore) throw new Error("No se encontró un token válido.");
-    } catch (err) {
-      console.log(err);
-      router.replace("/"); // Redirige a la ruta
-    }
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = await getToken();
+      if (!token) {
+        router.replace("/"); // Redirige a la ruta especificada
+      } else {
+        const decoded = jwtDecode<JwtPayload>(token);
+        dispatchUser({ type: "SET_ID", payload: decoded.nameid });
+        dispatchUser({ type: "SET_EMAIL", payload: decoded.email });
+      }
+      console.log("Token", token);
+    };
+
+    checkToken(); // Llama a la función para verificar el token
+    console.log('Usuario', user);
+    
   }, []);
+  
 
   //CIERRE DE SESION
   const singOut = async () => {
@@ -54,11 +71,16 @@ const Home = () => {
       ],
       { cancelable: true } // Permite cerrar el alert al presionar fuera de él
     );
+
+    //Limpiar todos los contextos
+    // Limpiar todos los contextos
+    dispatchUser({ type: "RESET" });
+    dispatchEquipo({ type: "RESET" });
+    dispatchReserva({ type: "RESET" });
+
   };
 
-  useEffect(() => {
-    getTokenJwt();
-  }, [getTokenJwt]);
+
 
   const AnimatedButton = ({
     onPress,
@@ -105,13 +127,13 @@ const Home = () => {
       ]}
     >
       <View style={styles.user}>
-        <User style={{marginLeft:5}} color={"black"} size={80} />
+        <User style={{ marginLeft: 5 }} color={"black"} size={80} />
         <View style={styles.userinfocontainer}>
           <Text style={styles.name}>Sebastian Tapia</Text>
           <Text style={styles.rol}>Portero</Text>
         </View>
         <Pressable style={styles.logout} onPress={singOut}>
-          <LogOut color={'rgb(207, 0, 0)'}/>
+          <LogOut color={'rgb(207, 0, 0)'} />
         </Pressable>
       </View>
       <View>
@@ -134,12 +156,8 @@ const Home = () => {
   );
 };
 
-// Content es un componenete que me esta mostrando la informacion del token bajo una condicion.
-// Si el token no existe, me muestra un mensaje de que no hay token, si el token existe me muestra el Content.
-
-// Styles
 const styles = StyleSheet.create({
-  logout:{
+  logout: {
     marginLeft: 40,
   },
   pressable: {

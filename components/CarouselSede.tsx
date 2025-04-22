@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, FlatList, Text, StyleSheet } from "react-native";
 import CarouselItem from "./CarouselItem";
-import { fetchAllSedes } from "@/utils/apiService";
+import { fetchAllSedes } from "@/services/apiService";
 
 export const CarouselSede = () => {
   const [sedes, sedSedes] = useState([]); // Estado para almacenar los datos

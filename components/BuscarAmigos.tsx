@@ -10,33 +10,34 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
-import { Search, UserPlus, CheckCircle } from "lucide-react-native";
+
+import {
+  Search,
+  UserPlus,
+  CheckCircle
+} from "lucide-react-native";
 import {
   fetchGetUserByUsername,
   fetchGetUserByEmail,
-} from "@/utils/apiService";
+} from "@/services/apiService";
 import Contactos from "./Contactos";
-import { useEquipo } from "@/context/EquipoContext"; // Importamos el contexto
+import { useEquipo } from "@/context/EquipoContext";
+import { TeamMember } from "@/types/TeamMember";
 
-type User = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  confirmed: boolean;
-};
+
 
 const BuscarAmigos = () => {
   const { equipo, dispatch } = useEquipo(); // Obtenemos equipo y dispatch del contexto
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [usuario, setUsuario] = useState<string>("");
-  const [usersFound, setUsersFound] = useState<User[]>([]);
+  const [usersFound, setUsersFound] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
     if (!usuario.trim()) return;
     setLoading(true);
     try {
-      let response: User | User[] = [];
+      let response: TeamMember | TeamMember[] = [];
 
       if (usuario.includes("@")) {
         response = await fetchGetUserByEmail(usuario);
@@ -53,11 +54,18 @@ const BuscarAmigos = () => {
     }
   };
 
-  const toggleEquipo = (user: User) => {
-    if (equipo.some((u) => u.id === user.id)) {
+  const toggleEquipo = (user: TeamMember) => {
+    if (equipo.miembros.some((u) => u.id === user.id)) {
       dispatch({ type: "ELIMINAR_USUARIO", payload: user.id });
     } else {
-      dispatch({ type: "AGREGAR_USUARIO", payload: user });
+      //mapear aca el usuario a TeamMember
+      const NewMember: TeamMember = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        confirmed: false,
+      };
+      dispatch({ type: "AGREGAR_USUARIO", payload: NewMember});
     }
   };
 
@@ -101,7 +109,7 @@ const BuscarAmigos = () => {
                 data={usersFound}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => {
-                  const enEquipo = equipo.some((u) => u.id === item.id);
+                  const enEquipo = equipo.miembros.some((u) => u.id === item.id);
                   return (
                     <View style={styles.userContainer}>
                       <Text style={styles.userText}>

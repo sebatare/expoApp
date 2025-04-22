@@ -1,48 +1,64 @@
 import React, { createContext, useReducer, useContext, ReactNode } from "react";
+import { TeamMember } from "@/types/TeamMember";
 
-type User = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  confirmed: boolean;
-};
 
-type EquipoState = {
-  equipo: User[];
-  fecha_partido?: string;
-  hora_partido?: string;
-  lugar_partido?: string;
-};
+export type EquipoState = {
+  nombre?: string;
+  clubId?: string;
+  miembros: TeamMember[];
+  capitanId?: string;
+  horaPartido?: string;
+  fechaPartido?: string;
+  lugarPartido?: string;
+}
 
 type EquipoAction =
-  | { type: "AGREGAR_USUARIO"; payload: User }
-  | { type: "ELIMINAR_USUARIO"; payload: string };
+  | { type: "SET_NOMBRE"; payload: string }
+  | { type: "SET_CLUBID"; payload: string }
+  | { type: "AGREGAR_USUARIO"; payload: TeamMember }
+  | { type: "ELIMINAR_USUARIO"; payload: string }
+  | { type: "SET_CAPITANID"; payload: string }
+  | { type: "RESET"; payload?: EquipoState };
+
+
+
 
 const equipoReducer = (
   state: EquipoState,
   action: EquipoAction
 ): EquipoState => {
   switch (action.type) {
+    case "SET_NOMBRE":
+      return { ...state, nombre: action.payload };
+    case "SET_CLUBID":
+      return { ...state, clubId: action.payload };
     case "AGREGAR_USUARIO":
-      return { equipo: [...state.equipo, action.payload] };
+      
+      return { miembros: [...state.miembros, action.payload] };
+      
     case "ELIMINAR_USUARIO":
       return {
-        equipo: state.equipo.filter((user) => user.id !== action.payload),
+        miembros: state.miembros.filter((user) => user.id !== action.payload),
       };
+    case "SET_CAPITANID":
+      return { ...state, capitanId: action.payload };
+    case "RESET":
+      return action.payload ? action.payload : { miembros:    [] };
     default:
       return state;
   }
 };
 
 const EquipoContext = createContext<
-  { equipo: User[]; dispatch: React.Dispatch<EquipoAction> } | undefined
+  { equipo: EquipoState; dispatch: React.Dispatch<EquipoAction> } | undefined
 >(undefined);
 
+
 export const EquipoProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(equipoReducer, { equipo: [] });
+  const [state, dispatch] = useReducer(equipoReducer, { miembros: [] });
 
   return (
-    <EquipoContext.Provider value={{ equipo: state.equipo, dispatch }}>
+    <EquipoContext.Provider value={{ equipo: state, dispatch }}>
       {children}
     </EquipoContext.Provider>
   );

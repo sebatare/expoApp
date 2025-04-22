@@ -10,11 +10,16 @@ import {
   Dimensions,
 } from "react-native";
 
+import { useReserva } from "@/context/reserva/ReservaContext"; // asegúrate que la ruta sea correcta
+
+
 interface HoraSelectorProps {
   blockedHours: string[];
 }
 
 const HoraSelectorModal = ({ blockedHours }: HoraSelectorProps) => {
+
+  const {dispatch } = useReserva(); // Obtenemos el estado de reserva del contexto
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   // Generar las horas válidas entre 9:00 y 18:00
@@ -22,9 +27,12 @@ const HoraSelectorModal = ({ blockedHours }: HoraSelectorProps) => {
   const [hora, setHora] = useState<string | null>(null);
 
   const handleSelect = (time: string) => {
-    setIsModalVisible(false);
-
     setHora(time);
+    // Aquí puedes guardar la hora seleccionada en el contexto o en el estado
+    dispatch({ type: "SET_HORA_INICIO", payload: time });
+    //SET HORA FIN CON UNA HORA MAS A LA HORA INICIO
+    dispatch({ type: "SET_HORA_TERMINO", payload: (parseInt(time) + 1).toString() });
+    setIsModalVisible(false);
   };
 
   return (

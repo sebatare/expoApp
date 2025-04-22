@@ -7,10 +7,11 @@ import {
   View,
   FlatList,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BookUser } from "lucide-react-native";
 import * as Contacts from "expo-contacts";
 import { useEquipo } from "@/context/EquipoContext"; // Asegúrate de ajustar la ruta
+import { TeamMember } from "@/types/TeamMember";
 
 const Contactos = () => {
   const { equipo, dispatch } = useEquipo(); // Obtenemos el equipo y la función dispatch del contexto
@@ -36,14 +37,15 @@ const Contactos = () => {
   }, []);
 
   const agregarContacto = (contact: Contacts.Contact) => {
-    const user = {
-      id: contact.id || "unknown-id",
+    //Mapeo
+    const user: TeamMember = {
+      id: contact.id || Date.now().toString(),
       firstName: contact.firstName || "Nombre desconocido",
       lastName: contact.lastName || "Apellido desconocido",
       confirmed: false,
     };
-
-    if (!equipo.some((member) => member.id === user.id)) {
+    //Agregar a contexto
+    if (!equipo.miembros.some((member) => member.id === user.id)) {
       dispatch({ type: "AGREGAR_USUARIO", payload: user });
     }
   };

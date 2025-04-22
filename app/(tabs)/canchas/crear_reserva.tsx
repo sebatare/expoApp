@@ -10,21 +10,37 @@ import {
   Easing,
   SafeAreaView,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import HoraSelectorModal from "@/components/HoraSelector";
 import FechaSelectorModal from "@/components/FechaSelector";
 import sedesImagesMapping from "@/utils/sedesImagesMapping";
 import CanchaSelector from "@/components/CanchaSelector";
 import { XCircle } from "lucide-react-native";
 import BuscarAmigos from "@/components/BuscarAmigos";
+
+
+//CONTEXT
 import { useEquipo } from "@/context/EquipoContext";
+import { useReserva } from "@/context/reserva/ReservaContext";
+import { useUser } from "@/context/user/UserContext";
+
+
+//LAMADO API
+import { crearReserva } from "@/services/teamServices";
+import { getToken } from "@/utils/tokenFunction";
+
+
 
 const CrearReserva = () => {
+
+  const { user } = useUser(); // Obtenemos el usuario del contexto de reserva  
   const { data } = useLocalSearchParams();
   const [sede, setSede] = useState<any | null>(null);
 
   // Equipo global (lista de usuarios) y dispatch para eliminar
-  const { equipo, dispatch } = useEquipo();
+  const { reserva, dispatch: dispatchReserva } = useReserva();
+
+  const { equipo, dispatch: dispatchEquipo } = useEquipo();
 
   // Animación de opacidad
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -42,17 +58,34 @@ const CrearReserva = () => {
     }).start();
   }, []);
 
-  // Parsear los datos de la cancha
+  // CONFIGURACION INICIAL DE RESERVAS
+  useEffect(() => {
+    const verificarToken = async () => {
+      const token = await getToken(); // asegurate que esta sea async si usa SecureStore
+      if (!token) {
+        console.warn("Token no disponible");
+        router.replace("/"); // 🔁 redirige al login, reemplazando la pantalla actual
+      }
+    };
+
+    verificarToken();
+  }, []);
+
   useEffect(() => {
     if (data) {
       try {
         const parsedItem = JSON.parse(Array.isArray(data) ? data[0] : data);
         setSede(parsedItem);
+        dispatchReserva({ type: "SET_SEDE_ID", payload: parsedItem.id });
+        dispatchEquipo({ type: "SET_CAPITANID", payload: user.id });
       } catch (error) {
-        console.error("Error al parsear el objeto cancha:", error);
+        console.error("Error al parsear el objeto sede:", error);
       }
     }
+
+
   }, [data]);
+
 
   // Mientras no haya sede, mostramos un loader simple
   if (!sede) {
@@ -68,8 +101,35 @@ const CrearReserva = () => {
 
   // Eliminar jugador del equipo
   const eliminarJugador = (userId: string) => {
-    dispatch({ type: "ELIMINAR_USUARIO", payload: userId });
+    dispatchEquipo({ type: "ELIMINAR_USUARIO", payload: userId });
   };
+
+  // Handler para crear la reserva
+  const handleCrearReserva = async () => {
+    try {
+      const equipoState = {
+        clubId: sede.clubId, // si tienes esta info, o usa un valor mock
+        miembros: equipo.miembros,
+        capitanId: equipo.miembros[0]?.id,
+      };
+
+      const reservaState = {
+        ...reserva,
+        canchaId: reserva.canchaId || sede.id,
+        usuarioId: equipo.miembros[0]?.id,
+      };
+
+      await crearReserva(equipoState, reservaState, user.id);
+    } catch (error) {
+      console.error("Error creando reserva:", error);
+    }
+  };
+
+  const verificarContexts = () => {
+    console.log("Equipo:", equipo);
+    console.log("Reserva:", reserva);
+    console.log("Usuario:", user);
+  }
 
   // Cabecera de la lista (título, descripción, botones de fecha/hora, etc.)
   const renderHeader = () => (
@@ -85,7 +145,7 @@ const CrearReserva = () => {
       </View>
 
       {/* Selector de canchas */}
-      <CanchaSelector reserva={undefined} sede={sede.id} />
+      <CanchaSelector sede={sede.id} />
 
       {/* Contenedor "Equipo" + botón de buscar amigos */}
       <View style={styles.equipocontainer}>
@@ -112,11 +172,13 @@ const CrearReserva = () => {
   // Pie de la lista (botón "Solicitar")
   const renderFooter = () => (
     <View style={styles.footerContainer}>
-      <TouchableOpacity style={styles.solicitarButton}>
+      <TouchableOpacity style={styles.solicitarButton} onPress={handleCrearReserva}>
         <Text style={styles.solicitarButtonText}>Solicitar</Text>
       </TouchableOpacity>
     </View>
   );
+
+  
 
   return (
     // Imagen de fondo que cubre toda la pantalla
@@ -126,13 +188,16 @@ const CrearReserva = () => {
         {/* SafeAreaView para no chocar con la barra superior */}
         <SafeAreaView style={{ flex: 1 }}>
           <FlatList
-            data={equipo}
+            data={equipo.miembros}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
             ListHeaderComponent={renderHeader}
             ListFooterComponent={renderFooter}
             contentContainerStyle={styles.listContent}
           />
+          <View>
+            <TouchableOpacity onPress={verificarContexts}><Text>Verificar</Text></TouchableOpacity>
+          </View>
         </SafeAreaView>
       </Animated.View>
     </ImageBackground>

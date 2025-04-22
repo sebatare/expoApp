@@ -1,9 +1,8 @@
 import { View, Text, StyleSheet } from "react-native";
 import React from "react";
 import { CarouselSede } from "@/components/CarouselSede";
-type Props = {};
 
-const Canchas = (props: Props) => {
+const Canchas = () => {
   return (
     <View style={styles.container}>
       <View style={styles.carouselcontainer}>
