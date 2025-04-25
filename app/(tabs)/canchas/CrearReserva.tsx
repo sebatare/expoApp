@@ -76,8 +76,10 @@ const CrearReserva = () => {
       try {
         const parsedItem = JSON.parse(Array.isArray(data) ? data[0] : data);
         setSede(parsedItem);
-        dispatchReserva({ type: "SET_SEDE_ID", payload: parsedItem.id });
+        
+        // dispatchReserva({ type: "SET_SEDE_ID", payload: parsedItem.id });
         dispatchEquipo({ type: "SET_CAPITANID", payload: user.id });
+        dispatchReserva({ type: "SET_USUARIO_ID", payload: user.id });
       } catch (error) {
         console.error("Error al parsear el objeto sede:", error);
       }
@@ -116,7 +118,7 @@ const CrearReserva = () => {
       const reservaState = {
         ...reserva,
         canchaId: reserva.canchaId || sede.id,
-        usuarioId: equipo.miembros[0]?.id,
+        usuarioId: user.id
       };
 
       await crearReserva(equipoState, reservaState, user.id);
@@ -178,7 +180,7 @@ const CrearReserva = () => {
     </View>
   );
 
-  
+
 
   return (
     // Imagen de fondo que cubre toda la pantalla

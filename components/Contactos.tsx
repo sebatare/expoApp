@@ -27,6 +27,7 @@ const Contactos = () => {
             Contacts.Fields.FirstName,
             Contacts.Fields.LastName,
             Contacts.Fields.Emails, // Se agrega para poder obtener el correo, si lo hay
+            Contacts.Fields.PhoneNumbers, // Se agrega para poder obtener el telefono, si lo hay
           ],
         });
         if (data.length > 0) {
@@ -37,12 +38,16 @@ const Contactos = () => {
   }, []);
 
   const agregarContacto = (contact: Contacts.Contact) => {
-    //Mapeo
+    //Mapeo de contacto a TeamMember
     const user: TeamMember = {
       id: contact.id || Date.now().toString(),
       firstName: contact.firstName || "Nombre desconocido",
       lastName: contact.lastName || "Apellido desconocido",
       confirmed: false,
+      phonenumber:
+        contact.phoneNumbers?.find(p => p.label === 'mobile')?.number ||
+        contact.phoneNumbers?.[0]?.number ||
+        "Sin telefono",
     };
     //Agregar a contexto
     if (!equipo.miembros.some((member) => member.id === user.id)) {

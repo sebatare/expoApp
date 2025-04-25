@@ -8,7 +8,7 @@ export default function CanchasLayout() {
         options={{ title: "Canchas cerca de :", headerShown: true }}
       />
       <Stack.Screen
-        name="crear_reserva"
+        name="crearReserva"
         options={{
           title: "Realizar reserva"
         }}

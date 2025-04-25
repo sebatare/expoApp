@@ -46,9 +46,6 @@ export default function () {
 
       // 2. Guardar token en almacenamiento seguro
       await storeToken(token);
-      console.log("Token guardado:", token);
-
-      console.log("Decoded JWT:", decoded);
       dispatch({ type: "SET_ID", payload: decoded.nameid });
       dispatch({ type: "SET_EMAIL", payload: decoded.email });
       // 4. Redireccionar al home

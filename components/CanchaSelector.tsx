@@ -20,10 +20,10 @@ type Props = {
 };
 
 const CanchaSelector = ({ sede }: Props) => {
-  const { dispatch } = useReserva(); // Obtenemos el estado de reserva del contexto
+  const { reserva, dispatch } = useReserva(); // Obtenemos el estado de reserva del contexto
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [canchas, setCanchas] = useState<Cancha[]>([]);
-  const [selectedCancha, setSelectedCancha] = useState<Cancha | null>(null);
+  const selectedCancha = canchas.find(c => c.id === reserva.canchaId) || null;
 
   // Simulación de llamada a un endpoint (puedes reemplazarlo con fetch)
   useEffect(() => {
@@ -31,7 +31,7 @@ const CanchaSelector = ({ sede }: Props) => {
       try {
         const response = await fetchCanchasBySede(sede);
         setCanchas(response);
-    
+
       } catch (error) {
         console.error("Error al cargar las canchas:", error);
       }
@@ -41,10 +41,8 @@ const CanchaSelector = ({ sede }: Props) => {
 
   // Función para manejar la selección de una cancha
   const handleSelectCancha = (cancha: Cancha) => {
-    setSelectedCancha(cancha);
-    dispatch({ type: "SET_CANCHA_ID", payload: cancha.id }); // Guardar la cancha seleccionada en el contexto
-
-    setIsModalVisible(false); // Cerrar el modal
+    dispatch({ type: "SET_CANCHA_ID", payload: cancha.id });
+    setIsModalVisible(false);
   };
 
   return (

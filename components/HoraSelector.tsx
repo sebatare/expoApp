@@ -10,34 +10,41 @@ import {
   Dimensions,
 } from "react-native";
 
-import { useReserva } from "@/context/reserva/ReservaContext"; // asegúrate que la ruta sea correcta
-
+import { useReserva } from "@/context/reserva/ReservaContext";
 
 interface HoraSelectorProps {
   blockedHours: string[];
 }
 
 const HoraSelectorModal = ({ blockedHours }: HoraSelectorProps) => {
-
-  const {dispatch } = useReserva(); // Obtenemos el estado de reserva del contexto
+  const { reserva, dispatch } = useReserva();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Generar las horas válidas entre 9:00 y 18:00
-  const hours = Array.from({ length: 10 }, (_, i) => `${9 + i}:00`);
-  const [hora, setHora] = useState<string | null>(null);
+  // Horas disponibles entre 9:00 y 18:00
+  const hours = Array.from({ length: 10 }, (_, i) => `${(9 + i).toString().padStart(2, '0')}:00`);
 
   const handleSelect = (time: string) => {
-    setHora(time);
-    // Aquí puedes guardar la hora seleccionada en el contexto o en el estado
     dispatch({ type: "SET_HORA_INICIO", payload: time });
-    //SET HORA FIN CON UNA HORA MAS A LA HORA INICIO
-    dispatch({ type: "SET_HORA_TERMINO", payload: (parseInt(time) + 1).toString() });
+
+    const [horaStr] = time.split(":");
+    const horaFinNum = parseInt(horaStr) + 1;
+    const horaTermino = `${horaFinNum.toString().padStart(2, "0")}:00`;
+
+    dispatch({ type: "SET_HORA_TERMINO", payload: horaTermino });
+
     setIsModalVisible(false);
   };
 
+  const handleClear = () => {
+    dispatch({ type: "SET_HORA_INICIO", payload: null });
+    dispatch({ type: "SET_HORA_TERMINO", payload: null });
+  };
+
+  const horaSeleccionada = reserva.horaInicio; // <-- directamente del contexto
+
   return (
     <>
-      {/* Botón para abrir el modal */}
+      {/* Botón para abrir modal */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => setIsModalVisible(true)}
@@ -45,14 +52,12 @@ const HoraSelectorModal = ({ blockedHours }: HoraSelectorProps) => {
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={styles.buttonText}>
-            {hora ? `${hora}` : "Seleccionar Hora"}
+            {horaSeleccionada ? horaSeleccionada : "Seleccionar Hora"}
           </Text>
-          {hora && (
+          {horaSeleccionada && (
             <CircleX
-              style={{paddingLeft: 50}}
-              onPress={() => {
-                setHora(null);
-              }}
+              style={{ marginLeft: 10 }}
+              onPress={handleClear}
               size={20}
               color={"rgb(190, 0, 0)"}
             />
@@ -60,7 +65,7 @@ const HoraSelectorModal = ({ blockedHours }: HoraSelectorProps) => {
         </View>
       </TouchableOpacity>
 
-      {/* Modal para seleccionar hora */}
+      {/* Modal con selección de hora */}
       <Modal
         visible={isModalVisible}
         transparent={true}
@@ -71,7 +76,6 @@ const HoraSelectorModal = ({ blockedHours }: HoraSelectorProps) => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Selecciona una hora</Text>
 
-            {/* Lista de horas */}
             <FlatList
               data={hours}
               keyExtractor={(item) => item}
@@ -83,8 +87,6 @@ const HoraSelectorModal = ({ blockedHours }: HoraSelectorProps) => {
                   ]}
                   disabled={blockedHours.includes(item)}
                   onPress={() => handleSelect(item)}
-                  accessible={true}
-                  accessibilityLabel={`Hora ${item}`}
                 >
                   <Text
                     style={
@@ -102,13 +104,9 @@ const HoraSelectorModal = ({ blockedHours }: HoraSelectorProps) => {
               style={styles.flatListContainer}
             />
 
-            {/* Botón de cerrar */}
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setIsModalVisible(false)}
-              accessibilityRole="button"
-              accessible={true}
-              accessibilityLabel="Cerrar selección de hora"
             >
               <Text style={styles.closeButtonText}>Cerrar</Text>
             </TouchableOpacity>
@@ -120,6 +118,7 @@ const HoraSelectorModal = ({ blockedHours }: HoraSelectorProps) => {
 };
 
 export default HoraSelectorModal;
+
 
 const { width, height } = Dimensions.get("window");
 
@@ -148,7 +147,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 15,
     padding: 20,
-    maxHeight: height * 0.7, // Limitar la altura del modal
+    maxHeight: height * 0.7,
     elevation: 5,
   },
   modalTitle: {
@@ -159,7 +158,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   flatListContainer: {
-    maxHeight: height * 0.5, // Hacer scroll manejable
+    maxHeight: height * 0.5,
   },
   hourOption: {
     backgroundColor: "#E0F7FA",

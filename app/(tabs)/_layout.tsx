@@ -5,7 +5,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={({ route }) => ({
         tabBarStyle: {
-          display: route.name === "/canchas/crear_reserva" ? "none" : "flex",
+          display: route.name === "/canchas/CrearReserva" ? "none" : "flex",
         },
       })}
     >
@@ -23,7 +23,7 @@ export default function TabLayout() {
           title: "Home",
           headerShown: false,
           tabBarIcon: () => <House color={"black"} />,
-          
+
         }}
       />
       <Tabs.Screen
@@ -32,7 +32,7 @@ export default function TabLayout() {
           title: "Canchas",
           headerShown: false,
           tabBarIcon: () => <Handshake color={"black"} />,
-          
+
         }}
       />
     </Tabs>

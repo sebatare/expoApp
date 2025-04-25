@@ -8,37 +8,34 @@ import {
   Dimensions,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { CircleX } from 'lucide-react-native';
-import { useReserva } from "@/context/reserva/ReservaContext"; // asegúrate que la ruta sea correcta
+import { CircleX } from "lucide-react-native";
+import { useReserva } from "@/context/reserva/ReservaContext";
 
 interface FechaSelectorProps {
   unavailableDates: string[]; // Lista de fechas no disponibles en formato YYYY-MM-DD
-
 }
 
-const FechaSelectorModal: React.FC<FechaSelectorProps> = ({unavailableDates}) => {
-
-  const { dispatch } = useReserva(); // Obtenemos el estado de reserva del contexto
+const FechaSelectorModal: React.FC<FechaSelectorProps> = ({ unavailableDates }) => {
+  const { reserva, dispatch } = useReserva(); // Usamos el estado y dispatch del contexto
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null); // Estado para la fecha seleccionada
+
+  const selectedDate = reserva.fecha;
 
   const handleSelect = (date: string) => {
-    setSelectedDate(date); // Actualiza la fecha seleccionada
-    dispatch({ type: 'SET_FECHA', payload: date });
-    setIsModalVisible(false); // Cierra el modal
+    dispatch({ type: "SET_FECHA", payload: date });
+    setIsModalVisible(false);
   };
+
   const iconButtonStyle = {
-    paddingLeft: selectedDate? 50:0,
+    paddingLeft: selectedDate ? 50 : 0,
   };
 
   const buttonStyle = {
     ...styles.button,
-    paddingHorizontal: selectedDate? 0: 20,
-    paddingLeft: selectedDate? 20: 20,
-  }
-  
+    paddingHorizontal: selectedDate ? 0 : 20,
+    paddingLeft: selectedDate ? 20 : 20,
+  };
 
-  // Estilizar las fechas no disponibles
   const markedDates = unavailableDates.reduce(
     (acc, date) => ({
       ...acc,
@@ -46,22 +43,25 @@ const FechaSelectorModal: React.FC<FechaSelectorProps> = ({unavailableDates}) =>
     }),
     {}
   );
-  
 
   return (
     <>
-      {/* Botón para abrir el modal */}
-      <TouchableOpacity
-        style={buttonStyle}
-        onPress={() => setIsModalVisible(true)}
-      >
-        <View style={{flexDirection:"row", justifyContent:"space-around"}}>
-          <Text style={styles.buttonText}>{selectedDate ? `${selectedDate}`:"Seleccionar Fecha"}</Text>
-          {selectedDate && <CircleX  style={iconButtonStyle}onPress={()=>{setSelectedDate(null)}} size={20} color={"rgb(190, 0, 0)"}/>}
+      <TouchableOpacity style={buttonStyle} onPress={() => setIsModalVisible(true)}>
+        <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+          <Text style={styles.buttonText}>
+            {selectedDate ? `${selectedDate}` : "Seleccionar Fecha"}
+          </Text>
+          {selectedDate && (
+            <CircleX
+              style={iconButtonStyle}
+              onPress={() => dispatch({ type: "SET_FECHA", payload: null })}
+              size={20}
+              color={"rgb(190, 0, 0)"}
+            />
+          )}
         </View>
       </TouchableOpacity>
 
-      {/* Modal con el calendario */}
       <Modal
         visible={isModalVisible}
         transparent={true}
@@ -71,7 +71,9 @@ const FechaSelectorModal: React.FC<FechaSelectorProps> = ({unavailableDates}) =>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {selectedDate ? `Fecha seleccionada: ${selectedDate}` : "Selecciona una fecha"}
+              {selectedDate
+                ? `Fecha seleccionada: ${selectedDate}`
+                : "Selecciona una fecha"}
             </Text>
             <Calendar
               onDayPress={(day: { dateString: string }) => handleSelect(day.dateString)}

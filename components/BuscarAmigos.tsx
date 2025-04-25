@@ -64,6 +64,7 @@ const BuscarAmigos = () => {
         firstName: user.firstName,
         lastName: user.lastName,
         confirmed: false,
+        email: user.email
       };
       dispatch({ type: "AGREGAR_USUARIO", payload: NewMember});
     }

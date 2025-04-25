@@ -49,7 +49,7 @@ const CarouselItem = ({ sede }: Props) => {
 
   const crearCancha = () => {
     router.push({
-      pathname: "/canchas/crear_reserva",
+      pathname: "/canchas/CrearReserva",
       params: {
         data: JSON.stringify(sede), // Serializa el objeto
       },

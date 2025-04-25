@@ -1,8 +1,8 @@
-import { toRegisterTeamDto } from "@/utils/teamMapper";
 import { getToken } from "@/utils/tokenFunction";
 import { EquipoState } from "../context/EquipoContext";
 import { ReservaState } from "@/context/reserva/reservaReducer";
 import { getApiUrl } from "./apiService";
+import { toRegisterTeamDto, toCreateReservaDto } from "@/utils/DtoMappers";
 
 export const crearReserva = async (
   equipoState: EquipoState,
@@ -11,11 +11,9 @@ export const crearReserva = async (
 ): Promise<void> => {
   try {
     const token = await getToken();
-    const equipoPayload = toRegisterTeamDto(equipoState, userId);
 
-    console.log("Estado del equipo:", equipoState);
-    console.log("ID del usuario:", userId);
-    console.log("Payload del equipo:", equipoPayload);
+    const equipoPayload = toRegisterTeamDto(equipoState, userId);
+    console.log("📦 Payload del equipo:", equipoPayload);
 
     const equipoResponse = await fetch(getApiUrl("add-team"), {
       method: "POST",
@@ -26,15 +24,17 @@ export const crearReserva = async (
       body: JSON.stringify(equipoPayload),
     });
 
-    if (!equipoResponse.ok) throw new Error("Error al registrar el equipo");
+    if (!equipoResponse.ok) {
+      const errorText = await equipoResponse.text();
+      console.error("❌ Error al registrar el equipo:", errorText);
+      throw new Error("Error al registrar el equipo");
+    }
 
     const equipoData = await equipoResponse.json();
-    console.log("Equipo registrado:", equipoData);
+    console.log("✅ Equipo registrado:", equipoData.team);
 
-    const reservaPayload = {
-      ...reservaState,
-      equipoId: equipoData.id,
-    };
+    const reservaPayload = toCreateReservaDto(reservaState, equipoData.team.id);
+    console.log("📦 Payload de reserva:", reservaPayload);
 
     const reservaResponse = await fetch(getApiUrl("create-reserva"), {
       method: "POST",
@@ -45,12 +45,21 @@ export const crearReserva = async (
       body: JSON.stringify(reservaPayload),
     });
 
-    if (!reservaResponse.ok) throw new Error("Error al registrar la reserva");
+    const responseText = await reservaResponse.text(); 
+    if (!reservaResponse.ok) {
+      console.error("❌ Error al registrar la reserva:", responseText);
+      throw new Error("Error al registrar la reserva");
+    }
 
-    const reservaData = await reservaResponse.json();
-    console.log("Reserva registrada:", reservaData);
+    try {
+      const reservaData = JSON.parse(responseText);
+      console.log("✅ Reserva registrada:", reservaData);
+    } catch (jsonError) {
+      console.warn("⚠️ Respuesta de reserva no fue JSON válido:", responseText);
+    }
+
   } catch (error) {
-    console.error("Error al enviar solicitud:", error);
+    console.error("🚨 Error general al crear reserva:", error);
     throw error;
   }
 };
